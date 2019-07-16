@@ -20,3 +20,10 @@ O jogo a ser criado é baseado no famoso jogo PACMAN no qual o personagem princi
 espalhados pelo mapa. Para dificultar o objetivo do jogador, existem 4 fantasmas que tentam "matar" o personagem principal
 (jogador), entretanto existe um tipo de ponto que possibilita o jogador "matar" os fantasmas, mas após alguns segundos eles voltam.
 Ao comer todos os pontos do mapa sem morrer mais do que 3 vezes o jogo é finalizado como vitória.
+
+#### REGRAS, PONTUAÇÕES E PADRÕES
+- Padrões: 
+  - 1 jogador;
+	- 1 nível;
+	- 4 fantasmas;
+	- Dimensão do mapa de 50x25;
