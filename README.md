@@ -6,7 +6,7 @@ Projeto de Téc. de Programação da UEL - Turma Ciência da Computação 2019. 
 
 ### JOGO - PACMAN EM C
 
-#### Grupo formado pelo alunos:
+#### Grupo formado pelos alunos:
 - Gabriel H. N. Espindola;
 - Henrique Tsuneda;
 - Lucca Motta;
