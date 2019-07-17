@@ -2,14 +2,14 @@
 #include <stdlib.h>
 #include <conio.h>
 #include <time.h> 		//contem time(), que retorna o tempo atual em ms
-#include <windows.h>	//contem funções necessarias para a funcao gotoxy;
+#include <windows.h>	//contem funÃ§Ãµes necessarias para a funcao gotoxy;
 
 void delay(unsigned int milliseconds){	//funcao que permite criar delays para debugging
     clock_t start = clock();
     while((clock() - start) * 1000 / CLOCKS_PER_SEC < milliseconds){}
 }
 
-void gotoxy(int x, int y)				//função q coloca o curso na posição desejada
+void gotoxy(int x, int y)				//funÃ§Ã£o q coloca o curso na posiÃ§Ã£o desejada
 {
 	COORD coord;
 	coord.X = x;
@@ -19,7 +19,7 @@ void gotoxy(int x, int y)				//função q coloca o curso na posição desejada
 
 void inicio();			//coloca letreiros e pede para iniciar o jogo
 void showLetreiro();	//Letreiro chamado por inicio
-void animacao();		//animação chamado por inicio
+void animacao();		//animaÃ§Ã£o chamado por inicio
 
 int main(int argc, char** argv){
 	char start;
@@ -68,7 +68,7 @@ void animacao(){
 	printf("           Pressione SPACE para comecar\n");
 	printf("                                                                                                   ");
 	
-	for(i=0;i<32;i++){						//cria a caixa de animação
+	for(i=0;i<32;i++){						//cria a caixa de animaÃ§Ã£o
 		if(i==0){
 			gotoxy(108,13);
 			printf("|");
@@ -86,7 +86,7 @@ void animacao(){
 			if(kbhit()){					//sempre verifica se alguma tecla foi pressionada, caso sim verifica se foi SPACE e finaliza!
 				mStart = getch();
 			break;
-		 	}								//faz a animação
+		 	}								//faz a animaÃ§Ã£o
 			gotoxy(100+i,13);
 			printf("C");
 			gotoxy(0,0);
