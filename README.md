@@ -22,8 +22,19 @@ espalhados pelo mapa. Para dificultar o objetivo do jogador, existem 4 fantasmas
 Ao comer todos os pontos do mapa sem morrer mais do que 3 vezes o jogo é finalizado como vitória.
 
 #### REGRAS, PONTUAÇÕES E PADRÕES
-- Padrões: 
-  - 1 jogador;
+- **Geral**: 
+	- 1 jogador
 	- 1 nível;
 	- 4 fantasmas;
-	- Dimensão do mapa de 50x25;
+	- Dimensão do mapa de 30x30 (não sei exatamente qual medida);
+- **Caracteres para escrever o Mapa baseado em inteiros:**
+	- 0 = "vazio" (Permitido andar mas nao contabiliza pontos);
+	- 1 = * (Permitido andar e contabiliza pontos - 10pts); 
+	- 2 = o (Super ponto - 50 pts + possibilidade de matar os fantasmas);
+	- 3 = "teleporta para o outro lado";
+	- 4 = "" canto inferior esquerdo (%c 200); //precisa alterar daqui para baixo
+	- 5 = "|" vertical (%c 186);
+	- 6 = "-" horizontal (%c 205);
+	- 7 = "" canto superior direito (%c 187);
+	- 8 = "" canto superior esquerdo (%c 201);
+	- 9 = "" canto inferior direito (%c 188)
