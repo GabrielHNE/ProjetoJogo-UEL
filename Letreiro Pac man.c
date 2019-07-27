@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <conio.h>
 #include <string.h>
-
+// Isto é uma nota//
 int main(int argc, char** argv){
 	char tamanho[50];
 	int Tamanhozin;
