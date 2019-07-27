@@ -7,7 +7,6 @@
 #define WIDTH 150
 #define WEIGTH 100
 
-
 int mapa[30][30] =     {{8,6,6,6,6,6,6,6,6,6,6,6,6,6,7,8,6,6,6,6,6,6,6,6,6,6,6,6,6,7},
 						{5,1,1,1,1,1,1,1,1,1,1,1,1,1,5,5,1,1,1,1,1,1,1,1,1,1,1,1,1,5},
 						{5,1,8,6,7,1,8,6,6,6,6,6,7,1,5,5,1,8,6,6,6,6,6,7,1,8,6,7,1,5},
@@ -40,11 +39,14 @@ int mapa[30][30] =     {{8,6,6,6,6,6,6,6,6,6,6,6,6,6,7,8,6,6,6,6,6,6,6,6,6,6,6,6
 						{5,1,4,6,6,6,6,6,6,6,6,6,9,1,4,9,1,4,6,6,6,6,6,6,6,6,6,9,1,5},
 						{5,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,5},						
 						{4,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,9}};
+
 char personagem = 'C';
 
 typedef struct Pacman{
 	int posX;
 	int	posY;
+	int oldX;
+	int oldY;
 	int Life;
 }Pacman;
 
@@ -58,13 +60,13 @@ void mapaDraw(int mapa[30][30]);								//Possui o mapa e chama a funcao printMa
 void printMapa(int map[30][30],int i, int j);	//Funcao chamada por mapaDraw() para printar os pontos do mapa
 void movingPacman();							//incompleta, mas devera incluir as funções identadas;						
 	void printPac(int x, int y);
-	int verMovX(char tecla,int x, int y);
-	int verMovY(char tecla, int y, int x);
+	int verMovX(char* tecla, char* keepMove, int x, int y);
+	int verMovY(char* tecla, char* keepMove, int y, int x);
 		
 int main(int argc, char** argv){
 	int gameOver=0;
 	int i;
-	char tecla='a';
+	char tecla='a', keepMove;
 	Pacman pacman;
 
 	//define o tamanho da tela !!! para centralizar faz (150 - (largura do mapa))/2;
@@ -81,12 +83,13 @@ int main(int argc, char** argv){
 	
 	while(!gameOver){
 		//tentar transformar em funcao (movingPacman)
-		pacman.posY = verMovY(tecla,pacman.posY, pacman.posX);
-		pacman.posX = verMovX(tecla,pacman.posX,pacman.posY);
+		pacman.posY = verMovY(&tecla, &keepMove, pacman.posY, pacman.posX);
+		pacman.posX = verMovX(&tecla, &keepMove, pacman.posX,pacman.posY);
 		if(kbhit()){
+		    keepMove = tecla;
 			tecla = getch();
-				pacman.posY = verMovY(tecla,pacman.posY, pacman.posX);
-				pacman.posX = verMovX(tecla,pacman.posX,pacman.posY);
+			pacman.posY = verMovY(&tecla, &keepMove, pacman.posY, pacman.posX);
+			pacman.posX = verMovX(&tecla, &keepMove, pacman.posX,pacman.posY);
 		}
 		delay(100);		
 		printPac(pacman.posX,pacman.posY);
@@ -271,39 +274,47 @@ void printPac(int x, int y){
 	printf(" ");
 	gotoxy(0,0);
 }
-int verMovX(char tecla, int x,int y){
-	switch(tecla){
+int verMovX(char* tecla, char* keepMove, int x,int y){
+	switch(*tecla){
 		case 'a':{
 			if(mapa[y][x-61] == 1 || mapa[y][x-61] == 0){
 				x--;
 				return x;
-			} else {return x;}
+			} else {
+				*tecla =*keepMove;
+				return x;}
 			break;}
 		case 'd':{
 			if(mapa[y][x-59] == 1 || mapa[y][x-59] == 0){
 				x++;
 				return x;
-			} else {return x;}
+			} else {
+				*tecla =*keepMove;
+				return x;}
 			break;}
 		default:{
 			return x;
 			break;}
 	}
 }
-int verMovY(char tecla, int y, int x){
+int verMovY(char* tecla, char* keepMove,  int y, int x){
 	
-	switch(tecla){
+	switch(*tecla){
 		case 'w':{
 			if(mapa[y-1][x-60] == 1 || mapa[y-1][x-60] == 0){
 				y--;
 				return y;
-			} else {return y;}
+			} else {
+				*tecla =* keepMove;
+				return y;}
 			break;}
 		case 's':{
 			if(mapa[y+1][x-60] == 1 || mapa[y+1][x-60] == 0){
 				y++;
 				return y;
-			} else {return y;}
+			} else {
+				*tecla =* keepMove;
+				return y;}
 			break;}
 		default:{
 			return y;
