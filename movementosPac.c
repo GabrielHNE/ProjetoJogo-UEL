@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <conio.h>
 #include <time.h> 		//contem time(), que retorna o tempo atual em ms
-#include <windows.h>	//contem fun��es necessarias para a funcao gotoxy;
+#include <windows.h>	//contem funcoes necessarias para a funcao gotoxy;
 
 int mapa[30][30] =     {{8,6,6,6,6,6,6,6,6,6,6,6,6,6,7,8,6,6,6,6,6,6,6,6,6,6,6,6,6,7},
 						{5,1,1,1,1,1,1,1,1,1,1,1,1,1,5,5,1,1,1,1,1,1,1,1,1,1,1,1,1,5},
@@ -13,7 +13,6 @@ int mapa[30][30] =     {{8,6,6,6,6,6,6,6,6,6,6,6,6,6,7,8,6,6,6,6,6,6,6,6,6,6,6,6
 						{5,1,8,6,7,1,8,7,1,6,6,6,6,6,7,8,6,6,6,6,6,1,8,7,1,1,1,1,1,5},
 						{5,1,4,6,9,1,5,5,1,1,1,1,1,1,5,5,1,1,1,1,1,1,5,5,1,1,1,1,1,5},
 						{5,1,1,1,1,1,5,8,6,6,6,6,6,1,4,9,1,6,6,6,6,6,7,5,1,1,1,1,1,5},
-						
 						{4,6,6,6,7,1,5,5,1,1,1,1,1,1,1,1,1,1,1,1,1,1,5,5,1,8,6,6,6,9},
 						{0,0,0,0,5,1,5,5,1,8,6,6,6,0,0,0,0,6,6,6,7,1,5,5,1,5,0,0,0,0},
 						{0,0,0,0,5,1,5,5,1,5,0,0,0,0,0,0,0,0,0,0,5,1,5,5,1,5,0,0,0,0},
@@ -26,7 +25,6 @@ int mapa[30][30] =     {{8,6,6,6,6,6,6,6,6,6,6,6,6,6,7,8,6,6,6,6,6,6,6,6,6,6,6,6
 						{0,0,0,0,5,1,5,5,1,1,1,1,1,1,1,1,1,1,1,1,1,1,5,5,1,5,0,0,0,0},
 						{0,0,0,0,5,1,5,5,1,8,6,6,6,6,6,6,6,6,6,6,7,1,5,5,1,5,0,0,0,0},
 						{8,6,6,6,9,1,4,9,1,4,6,6,6,6,7,8,6,6,6,6,9,1,4,9,1,4,6,6,6,7},
-						
 						{5,1,1,1,1,1,1,1,1,1,1,1,1,1,5,5,1,1,1,1,1,1,1,1,1,1,1,1,1,5},
 						{5,1,6,6,7,1,6,6,6,6,6,6,6,1,4,9,1,6,6,6,6,6,6,6,1,8,6,6,1,5},
 						{5,1,1,1,5,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,5,1,1,1,5},
@@ -37,10 +35,18 @@ int mapa[30][30] =     {{8,6,6,6,6,6,6,6,6,6,6,6,6,6,7,8,6,6,6,6,6,6,6,6,6,6,6,6
 						{5,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,5},						
 						{4,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,9}};
 char personagem = 'C';
-
+typedef struct Ghost{
+	int posX;
+	int	posY;
+	int oldX;
+	int oldY;
+	int Life;	//boolean
+}Ghost;
 typedef struct Pacman{
 	int posX;
 	int	posY;
+	int oldX;
+	int oldY;
 	int Life;
 }Pacman;
 
@@ -48,35 +54,51 @@ void delay(unsigned int milliseconds);
 void gotoxy(int x, int y);
 void mapaDraw();
 void printMapa(int map[30][30],int i,int j);
-void movingPacman();	//incompleta, mas devera incluir as funções identadas;						
-	void printPac(int x, int y);
-	int verMovX(char* tecla,char* oldTecla, int x, int y);
-	int verMovY(char* tecla,char* oldTecla, int y, int x);	
+					
+	void printPac(int Nx, int Ny, int Ox, int Oy);
+	int verMovX(char* tecla,char* keepMove,int x, int y);
+	int verMovY(char* tecla,char* keepMove, int y, int x);	
 
 int main(int argc, char** argv){
 	int gameOver=0;
-	int i;
-	char tecla, oldTecla;
+	int i, x, y; 
+	char tecla = 's', oldTecla='d', keepMove; 
 	Pacman pacman;
 	
-	system("MODE con cols=150 lines=100");   //define o tamanho da tela !!! para centralizar faz (150 - (largura do mapa))/2;
+	system("MODE con cols=150 lines=30");   //define o tamanho da tela !!! para centralizar faz (150 - (largura do mapa))/2;
 	delay(3000);
 	mapaDraw(mapa);
 	pacman.posX = 74; 						//distancia da parede (largura)
 	pacman.posY	= 23; 						//altura
 	gotoxy(pacman.posX,pacman.posY);		// coloca o pacman na posicao inicial
+	pacman.oldX = 1;
+	pacman.oldY = 1;
 	
 	while(!gameOver){
-	 	pacman.posY = verMovY(&tecla, &oldTecla, pacman.posY, pacman.posX);
-		pacman.posX = verMovX(&tecla, &oldTecla, pacman.posX,pacman.posY);
+		if(pacman.oldX != pacman.posX ){
+			pacman.oldX = pacman.posX;
+		}
+		if(pacman.oldY != pacman.posY)	{
+			pacman.oldY = pacman.posY;
+		}
+
+		pacman.posY = verMovY(&tecla,&keepMove, pacman.posY, pacman.oldX);
+		pacman.posX = verMovX(&tecla,&keepMove, pacman.posX,pacman.oldY);
+		printPac(pacman.posX, pacman.posY, pacman.oldX, pacman.oldY);
 		if(kbhit()){
-			oldTecla = tecla;
+			keepMove = tecla;
 			tecla = getch();
-				pacman.posY = verMovY(&tecla, &oldTecla, pacman.posY, pacman.posX);
-				pacman.posX = verMovX(&tecla, &oldTecla, pacman.posX,pacman.posY);
-		}		
-		printPac(pacman.posX,pacman.posY);
-		delay(150);
+			if(oldTecla != tecla){			//nao deixa bugar
+				oldTecla = tecla;
+				pacman.oldX = pacman.posX;
+				pacman.oldY = pacman.posY;
+				pacman.posY = verMovY(&tecla, &keepMove, pacman.posY, pacman.oldX);
+				pacman.posX = verMovX(&tecla, &keepMove, pacman.posX,pacman.oldY);
+			}
+			printPac(pacman.posX, pacman.posY, pacman.oldX, pacman.oldY);
+		}
+
+		delay(200);
 	}
 	return 0;
 }
@@ -150,29 +172,37 @@ void printMapa(int map[30][30],int i, int j){
 		}
 	}
 }
-void printPac(int x, int y){	
-	gotoxy(x,y);
-	printf("%c",personagem);
-	delay(80);
-	gotoxy(x,y);
-	printf(" ");
+void printPac(int Nx, int Ny, int Ox, int Oy){
+	if(Nx!=Ox || Ny!=Oy)
+	{
+	gotoxy(Nx,Ny);
+	printf("%c", personagem);
 	gotoxy(0,0);
+	gotoxy(Ox,Oy);
+	printf(" ", personagem);
+	gotoxy(0,0);
+	}
 }
-int verMovX(char* tecla, char* oldTecla, int x,int y){
+int verMovX(char* tecla, char* keepMove, int x,int y){
 	switch(*tecla){
 		case 'a':{
 			if(mapa[y][x-61] == 1 || mapa[y][x-61] == 0){
 				x--;
+				*keepMove = *tecla;
 				return x;
-			}else{return x;
-			}
+			} else{
+				*tecla = *keepMove;
+				return x;}
 			break;
 		}
 		case 'd':{
 			if(mapa[y][x-59] == 1 || mapa[y][x-59] == 0){
 				x++;
+				*keepMove = *tecla;				
 				return x;
-			}else{return x;}
+			} else {
+				*tecla = *keepMove;
+				return x;}
 			break;
 		}
 		default:{
@@ -181,33 +211,32 @@ int verMovX(char* tecla, char* oldTecla, int x,int y){
 		}
 	}
 }
-int verMovY(char* tecla,char* oldTecla, int y, int x){
+int verMovY(char* tecla, char* keepMove, int y, int x){
 	
 	switch(*tecla){
 		case 'w':{
 			if(mapa[y-1][x-60] == 1 || mapa[y-1][x-60] == 0){
 				y--;
+				*keepMove = *tecla;
 				return y;
 			}else{
-				*tecla = *oldTecla;
+				*tecla = *keepMove;
 				return y;}
 			break;
 		}
 		case 's':{
 			if(mapa[y+1][x-60] == 1 || mapa[y+1][x-60] == 0){
 				y++;
+				*keepMove = *tecla;				
 				return y;
-			}else{return y;}
+			}else{
+				*tecla = *keepMove;
+				return y;}
 			break;
 		}
 		default:{
 			return y;
 			break;
 		}
-
 	}
-
-}
-//para terminar essa função devo aprender mais sobre ponteiros
-void movingPacman(){
 }
