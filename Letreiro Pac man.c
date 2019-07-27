@@ -6,6 +6,7 @@
 int main(int argc, char** argv){
 	char tamanho[50];
 	int Tamanhozin;
+	printf("Xablau");
 	printf("                                                                                                   ");
 	printf(" _____   _____               _   _   _____   _     _     \n");
     printf("                                                                                                   ");	
