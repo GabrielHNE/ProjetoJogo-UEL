@@ -50,13 +50,13 @@ void mapaDraw();
 void printMapa(int map[30][30],int i,int j);
 void movingPacman();	//incompleta, mas devera incluir as funções identadas;						
 	void printPac(int x, int y);
-	int verMovX(char tecla,int x, int y);
-	int verMovY(char tecla, int y, int x);	
+	int verMovX(char* tecla,char* oldTecla, int x, int y);
+	int verMovY(char* tecla,char* oldTecla, int y, int x);	
 
 int main(int argc, char** argv){
 	int gameOver=0;
 	int i;
-	char tecla;
+	char tecla, oldTecla;
 	Pacman pacman;
 	
 	system("MODE con cols=150 lines=100");   //define o tamanho da tela !!! para centralizar faz (150 - (largura do mapa))/2;
@@ -67,10 +67,13 @@ int main(int argc, char** argv){
 	gotoxy(pacman.posX,pacman.posY);		// coloca o pacman na posicao inicial
 	
 	while(!gameOver){
+	 	pacman.posY = verMovY(&tecla, &oldTecla, pacman.posY, pacman.posX);
+		pacman.posX = verMovX(&tecla, &oldTecla, pacman.posX,pacman.posY);
 		if(kbhit()){
+			oldTecla = tecla;
 			tecla = getch();
-				pacman.posY = verMovY(tecla,pacman.posY, pacman.posX);
-				pacman.posX = verMovX(tecla,pacman.posX,pacman.posY);
+				pacman.posY = verMovY(&tecla, &oldTecla, pacman.posY, pacman.posX);
+				pacman.posX = verMovX(&tecla, &oldTecla, pacman.posX,pacman.posY);
 		}		
 		printPac(pacman.posX,pacman.posY);
 		delay(150);
@@ -155,8 +158,8 @@ void printPac(int x, int y){
 	printf(" ");
 	gotoxy(0,0);
 }
-int verMovX(char tecla, int x,int y){
-	switch(tecla){
+int verMovX(char* tecla, char* oldTecla, int x,int y){
+	switch(*tecla){
 		case 'a':{
 			if(mapa[y][x-61] == 1 || mapa[y][x-61] == 0){
 				x--;
@@ -178,14 +181,16 @@ int verMovX(char tecla, int x,int y){
 		}
 	}
 }
-int verMovY(char tecla, int y, int x){
+int verMovY(char* tecla,char* oldTecla, int y, int x){
 	
-	switch(tecla){
+	switch(*tecla){
 		case 'w':{
 			if(mapa[y-1][x-60] == 1 || mapa[y-1][x-60] == 0){
 				y--;
 				return y;
-			}else{return y;}
+			}else{
+				*tecla = *oldTecla;
+				return y;}
 			break;
 		}
 		case 's':{
