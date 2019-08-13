@@ -32,9 +32,10 @@ Ao comer todos os pontos do mapa sem morrer mais do que 3 vezes o jogo é finali
 	- 1 = * (Permitido andar e contabiliza pontos - 10pts); 
 	- 2 = o (Super ponto - 50 pts + possibilidade de matar os fantasmas);
 	- 3 = "teleporta para o outro lado";
-	- 4 = "" canto inferior esquerdo (%c 200); //precisa alterar daqui para baixo
-	- 5 = "|" vertical (%c 186);
-	- 6 = "-" horizontal (%c 205);
-	- 7 = "" canto superior direito (%c 187);
-	- 8 = "" canto superior esquerdo (%c 201);
-	- 9 = "" canto inferior direito (%c 188)
+	- 4 = " " canto superior esquerdo (%c 201); //precisa alterar daqui para baixo
+	- 5 = " " canto superior direito (%c 187);
+	- 6 = " " canto inferior esquerdo (%c 200)
+	- 7 = " "  canto inferior direito (%c 188);
+	- 8 = "|" vertical (%c 186);
+	- 9 = "-" horizontal (%c 205)
+canto inferior esquerdo (%c 200);

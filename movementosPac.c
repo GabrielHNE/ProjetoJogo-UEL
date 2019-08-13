@@ -34,6 +34,7 @@ int mapa[30][30] =     {{8,6,6,6,6,6,6,6,6,6,6,6,6,6,7,8,6,6,6,6,6,6,6,6,6,6,6,6
 						{5,1,4,6,6,6,6,6,6,6,6,6,9,1,4,9,1,4,6,6,6,6,6,6,6,6,6,9,1,5},
 						{5,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,5},						
 						{4,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,9}};
+						
 char personagem = 'C';
 typedef struct Ghost{
 	int posX;
@@ -74,31 +75,23 @@ int main(int argc, char** argv){
 	pacman.oldX = 1;
 	pacman.oldY = 1;
 	
-	while(!gameOver){
-		if(pacman.oldX != pacman.posX ){
-			pacman.oldX = pacman.posX;
-		}
-		if(pacman.oldY != pacman.posY)	{
-			pacman.oldY = pacman.posY;
-		}
-
-		pacman.posY = verMovY(&tecla,&keepMove, pacman.posY, pacman.oldX);
-		pacman.posX = verMovX(&tecla,&keepMove, pacman.posX,pacman.oldY);
-		printPac(pacman.posX, pacman.posY, pacman.oldX, pacman.oldY);
+	while(!gameOver)
+	{
 		if(kbhit()){
 			keepMove = tecla;
 			tecla = getch();
-			if(oldTecla != tecla){			//nao deixa bugar
-				oldTecla = tecla;
-				pacman.oldX = pacman.posX;
-				pacman.oldY = pacman.posY;
-				pacman.posY = verMovY(&tecla, &keepMove, pacman.posY, pacman.oldX);
-				pacman.posX = verMovX(&tecla, &keepMove, pacman.posX,pacman.oldY);
-			}
-			printPac(pacman.posX, pacman.posY, pacman.oldX, pacman.oldY);
 		}
+		if(pacman.oldX != pacman.posX ){
+			pacman.oldX = pacman.posX;
+		}
+		if(pacman.oldY != pacman.posY)    {
+			pacman.oldY = pacman.posY;
+		}
+		pacman.posY = verMovY(&tecla,&keepMove, pacman.posY, pacman.oldX);
+		pacman.posX = verMovX(&tecla,&keepMove, pacman.posX,pacman.oldY);
+		printPac(pacman.posX, pacman.posY, pacman.oldX, pacman.oldY);
 
-		delay(200);
+		delay(100);
 	}
 	return 0;
 }

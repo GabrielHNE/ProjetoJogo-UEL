@@ -4,15 +4,13 @@
 #include <time.h> 		//contem time(), que retorna o tempo atual em ms
 #include <windows.h>	//contem funcoes necessarias para a funcao gotoxy;
 
-
-char personagem = 'C';
-
 typedef struct Ghost{
 	int posX;
 	int	posY;
 	int oldX;
 	int oldY;
 	int Life;	//boolean
+	char charact;
 }Ghost;
 typedef struct Pacman{
 	int posX;
@@ -20,6 +18,7 @@ typedef struct Pacman{
 	int oldX;
 	int oldY;
 	int Life;
+	char charact;
 }Pacman;
 
 void pontuacao(int Ox,int Oy,int *score,int mapa[][30]);
@@ -34,7 +33,7 @@ void printMapa(int map[][30],int i,int j);
 
 int main(int argc, char** argv){
 	
-	int mapa[30][30] =     {{8,6,6,6,6,6,6,6,6,6,6,6,6,6,7,8,6,6,6,6,6,6,6,6,6,6,6,6,6,7},
+	int mapa[30][30] = {{8,6,6,6,6,6,6,6,6,6,6,6,6,6,7,8,6,6,6,6,6,6,6,6,6,6,6,6,6,7},
 						{5,1,1,1,1,1,1,1,1,1,1,1,1,1,5,5,1,1,1,1,1,1,1,1,1,1,1,1,1,5},
 						{5,1,8,6,7,1,8,6,6,6,6,6,7,1,5,5,1,8,6,6,6,6,6,7,1,8,6,7,1,5},
 						{5,1,5,0,5,1,5,0,0,0,0,0,5,1,5,5,1,5,0,0,0,0,0,5,1,5,0,5,1,5},
@@ -64,7 +63,7 @@ int main(int argc, char** argv){
 						{5,1,4,6,6,6,6,6,6,6,6,6,9,1,4,9,1,4,6,6,6,6,6,6,6,6,6,9,1,5},
 						{5,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,5},						
 						{4,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,9}};
-						
+	char personagem = 'C';	
 	int gameOver=0;
 	int i, x, y;
 	int score=0; 
