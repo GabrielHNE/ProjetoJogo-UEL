@@ -10,7 +10,7 @@ typedef struct Ghost{
 	int	posY;
 	int oldX;
 	int oldY;
-	int Life;	//boolean
+	int kill;	//boolean
 	char charact;
 }Ghost;
 typedef struct Pacman{
@@ -26,57 +26,69 @@ void inicio();
 void showLetreiro();
 void animacao();
 void inf();		
-
 void screenPoint();
+
 void pontuacao(int Ox,int Oy,int *score,int mapa[][30]);
 void auxPrintPac(int Ox, int Oy, int mapa[][30], char perso);
+
 void delay(unsigned int milliseconds);
 void gotoxy(int x, int y);
+
 void mapaDraw(int mapa[][30]);
 void printMapa(int map[][30],int i,int j);					
 void printPac(int Nx, int Ny, int Ox, int Oy, char charc, int mapa[][30]);
-int verMovX(char* tecla,char* keepMove,int x, int y,int mapa[][30]);
-int verMovY(char* tecla,char* keepMove, int y, int x,int mapa[][30]);
+void movPac( Pacman* pm, char* tecla, char* keepMove, int mapa[][30]);
+int verMovX(char** tecla,char** keepMove,int x, int y,int mapa[][30]);
+int verMovY(char** tecla,char** keepMove, int y, int x,int mapa[][30]);
 int calculadist(int PMx, int PMy, int GHx, int GHy);
 void movGhost(Ghost* ghost, Pacman* pacman, int mapa[][30]);	
+void teleport(Pacman **pm);
+void teleportGhost(Ghost** ghost);
+void checaFim(Pacman* pm, Ghost* ghost,int* gameOver, int* qtd_comeu, int* score);
+void perseguePac(Ghost** ghost, Pacman** pacman, int mapa[][30]);
+void fogePac(Ghost** ghost, Pacman** pacman, int mapa[][30]);
 
 int main(int argc, char** argv){
 	
-	int mapa[30][30] = { {4,9,9,9,9,9,9,9,9,9,9,9,9,9,5,4,9,9,9,9,9,9,9,9,9,9,9,9,9,5},
-						{8,1,1,1,1,1,1,1,1,1,1,1,1,1,8,8,1,1,1,1,1,1,1,1,1,1,1,1,1,8},
-						{8,1,4,9,5,1,4,9,9,9,9,9,5,1,8,8,1,4,9,9,9,9,9,5,1,4,9,5,1,8},
-						{8,1,8,0,8,1,8,0,0,0,0,0,8,1,8,8,1,8,0,0,0,0,0,8,1,8,0,8,1,8},
-						{8,1,6,9,7,1,6,9,9,9,9,9,7,1,6,7,1,6,9,9,9,9,9,7,1,6,9,7,1,8},
-						{8,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,8},
-						{8,1,4,9,5,1,4,5,1,9,9,9,9,9,5,4,9,9,9,9,9,1,4,5,1,4,9,5,1,8},
-						{8,1,6,9,7,1,8,8,1,1,1,1,1,1,8,8,1,1,1,1,1,1,8,8,1,6,9,7,1,8},
-						{8,1,1,1,1,1,8,8,9,9,9,9,9,1,6,7,1,9,9,9,9,9,5,8,1,1,1,1,1,8},
-						{6,9,9,9,5,1,8,8,1,1,1,1,1,1,1,1,1,1,1,1,1,1,8,8,1,8,9,9,9,9},
-						{0,0,0,0,8,1,8,8,1,4,9,9,9,0,0,0,0,9,9,9,5,1,8,8,1,8,0,0,0,0},
-						{0,0,0,0,8,1,8,8,1,8,0,0,0,0,0,0,0,0,0,0,8,1,8,8,1,8,0,0,0,0},
-						{0,0,0,0,8,1,8,8,1,8,0,0,0,0,0,0,0,0,0,0,8,1,8,8,1,8,0,0,0,0},
-						{0,0,0,0,8,1,8,8,1,8,0,0,0,0,0,0,0,0,0,0,8,1,8,8,1,8,0,0,0,0},
-						{9,9,9,9,7,1,6,7,1,8,0,0,0,0,0,0,0,0,0,0,8,1,6,7,1,6,9,9,9,9},
-						{1,1,1,1,1,1,1,1,1,8,0,0,0,0,0,0,0,0,0,0,8,1,1,1,1,1,1,1,1,1},
-						{9,9,9,9,5,1,4,5,1,8,0,0,0,0,0,0,0,0,0,0,8,1,4,5,1,4,9,9,9,9},
-						{0,0,0,0,8,1,8,8,1,6,9,9,9,9,9,9,9,9,9,9,7,1,8,8,1,8,0,0,0,0},
-						{0,0,0,0,8,1,8,8,1,1,1,1,1,1,1,1,1,1,1,1,1,1,8,8,1,8,0,0,0,0},
-						{0,0,0,0,8,1,8,8,1,4,9,9,9,9,9,9,9,9,9,9,5,1,8,8,1,8,0,0,0,0},
-						{4,9,9,9,7,1,6,7,1,6,9,9,9,9,5,4,9,9,9,9,7,1,6,7,1,6,9,9,9,5},
-						{8,1,1,1,1,1,1,1,1,1,1,1,1,1,8,8,1,1,1,1,1,1,1,1,1,1,1,1,1,8},
-						{8,1,9,9,5,1,9,9,9,9,9,9,9,1,6,7,1,9,9,9,9,9,9,9,1,4,9,9,1,8},
-						{8,1,1,1,8,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,8,1,1,1,8},
-						{8,9,9,1,8,1,4,5,1,9,9,9,9,9,5,4,9,9,9,9,9,1,4,5,1,8,1,9,9,8},
-						{8,1,1,1,1,1,8,8,1,1,1,1,1,1,8,8,1,1,1,1,1,1,8,8,1,1,1,1,1,8},
-						{8,1,4,9,9,9,7,6,9,9,9,9,5,1,8,8,1,4,9,9,9,9,7,6,9,9,9,5,1,8},
-						{8,1,6,9,9,9,9,9,9,9,9,9,7,1,6,7,1,6,9,9,9,9,9,9,9,9,9,7,1,8},
-						{8,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,8},						
-						{6,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,7}};
+	int mapa[30][30] = {
+						{4,9,9,9,9,9,9,9,9,9,9,9,9,9,5,4,9,9,9,9,9,9,9,9,9,9,9,9,9,5},//0
+						{8,1,1,1,1,1,1,1,1,1,1,1,1,1,8,8,1,1,1,1,1,1,1,1,1,1,1,1,1,8},//1
+						{8,1,4,9,5,1,4,9,9,9,9,9,5,1,8,8,1,4,9,9,9,9,9,5,1,4,9,5,1,8},//2
+						{8,2,8,0,8,1,8,0,0,0,0,0,8,1,8,8,1,8,0,0,0,0,0,8,1,8,0,8,2,8},//3
+						{8,1,6,9,7,1,6,9,9,9,9,9,7,1,6,7,1,6,9,9,9,9,9,7,1,6,9,7,1,8},//4
+						{8,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,8},//5
+						{8,1,4,9,5,1,4,5,1,9,9,9,9,9,5,4,9,9,9,9,9,1,4,5,1,4,9,5,1,8},//6
+						{8,1,6,9,7,1,8,8,1,1,1,1,1,1,8,8,1,1,1,1,1,1,8,8,1,6,9,7,1,8},//7
+						{8,1,1,1,1,1,8,8,9,9,9,9,9,1,6,7,1,9,9,9,9,9,5,8,1,1,1,1,1,8},//8
+						{6,9,9,9,5,1,8,8,1,1,1,1,1,1,1,1,1,1,1,1,1,1,8,8,1,8,9,9,9,9},//9
+						{0,0,0,0,8,1,8,8,1,4,9,9,9,0,0,0,0,9,9,9,5,1,8,8,1,8,0,0,0,0},//10
+						{0,0,0,0,8,1,8,8,1,8,0,0,0,0,0,0,0,0,0,0,8,1,8,8,1,8,0,0,0,0},//11
+						{0,0,0,0,8,1,8,8,1,8,0,0,0,0,0,0,0,0,0,0,8,1,8,8,1,8,0,0,0,0},//12
+						{0,0,0,0,8,1,8,8,1,8,0,0,0,0,0,0,0,0,0,0,8,1,8,8,1,8,0,0,0,0},//13
+						{9,9,9,9,7,1,6,7,1,8,0,0,0,0,0,0,0,0,0,0,8,1,6,7,1,6,9,9,9,9},//14
+						{3,1,1,1,1,1,1,1,1,8,0,0,0,0,0,0,0,0,0,0,8,1,1,1,1,1,1,1,1,3},//15
+						{9,9,9,9,5,1,4,5,1,8,0,0,0,0,0,0,0,0,0,0,8,1,4,5,1,4,9,9,9,9},//16
+						{0,0,0,0,8,1,8,8,1,6,9,9,9,9,9,9,9,9,9,9,7,1,8,8,1,8,0,0,0,0},//17
+						{0,0,0,0,8,1,8,8,1,1,1,1,1,1,1,1,1,1,1,1,1,1,8,8,1,8,0,0,0,0},//18
+						{0,0,0,0,8,1,8,8,1,4,9,9,9,9,9,9,9,9,9,9,5,1,8,8,1,8,0,0,0,0},//19
+						{4,9,9,9,7,1,6,7,1,6,9,9,9,9,5,4,9,9,9,9,7,1,6,7,1,6,9,9,9,5},//20
+						{8,1,1,1,1,1,1,1,1,1,1,1,1,1,8,8,1,1,1,1,1,1,1,1,1,1,1,1,1,8},//21
+						{8,1,9,9,5,1,9,9,9,9,9,9,9,1,6,7,1,9,9,9,9,9,9,9,1,4,9,9,1,8},//22
+						{8,2,1,1,8,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,8,1,1,2,8},//23
+						{8,9,9,1,8,1,4,5,1,9,9,9,9,9,5,4,9,9,9,9,9,1,4,5,1,8,1,9,9,8},//24
+						{8,1,1,1,1,1,8,8,1,1,1,1,1,1,8,8,1,1,1,1,1,1,8,8,1,1,1,1,1,8},//25
+						{8,1,4,9,9,9,7,6,9,9,9,9,5,1,8,8,1,4,9,9,9,9,7,6,9,9,9,5,1,8},//26
+						{8,1,6,9,9,9,9,9,9,9,9,9,7,1,6,7,1,6,9,9,9,9,9,9,9,9,9,7,1,8},//27
+						{8,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,8},//28					
+						{6,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,7}};//29
 						
 	int gameOver=0;
 	int i, x, y;
 	int score = 0; 
-	char tecla = 's', oldTecla='d', keepMove; 
+	char tecla = 's', oldTecla='d', keepMove;
+	int tInicio, tFim, tempoComer = 10000, qtd_comeu = 1;
+
+	srand(time(0));
 
 	system("MODE con cols=150 lines=30"); //define o tamanho da tela !!! para centralizar faz (150 - (largura do mapa))/2;
 	inicio();
@@ -96,46 +108,40 @@ int main(int argc, char** argv){
 	//ghost
 	Ghost ghost;
 	ghost.charact = 'w';
+	ghost.kill = 0;
 	ghost.posX = 74;
     ghost.posY = 13;
     gotoxy(ghost.posX, ghost.posY);
     gotoxy(0,0);
 
-	while(!gameOver)
-	{
+	while(!gameOver){
 		if(kbhit()){
 			keepMove = tecla;
 			tecla = getch();
 		}
-
-		if(pm.oldX != pm.posX ){
-			pm.oldX = pm.posX;
-		}
-		if(pm.oldY != pm.posY)    {
-			pm.oldY = pm.posY;
-		}
-
-		if(ghost.oldX != ghost.posX)
-		{
-			ghost.oldX = ghost.posX;
-		}
-		if(ghost.oldY != ghost.posY)
-		{
-			ghost.oldY = ghost.posY;
-		}
-
-		pm.posY = verMovY(&tecla, &keepMove, pm.posY, pm.oldX, mapa);
-		pm.posX = verMovX(&tecla, &keepMove, pm.posX, pm.oldY, mapa);
+		movPac(&pm, &tecla, &keepMove, mapa);
 		movGhost(&ghost, &pm, mapa);
-		pontuacao(pm.oldX, pm.oldY, &score, mapa);
 
+		if(mapa[pm.posY][pm.posX-60] == 2){
+			tInicio = clock();
+			ghost.charact = 'm';
+			ghost.kill = 1;
+			gotoxy(75,33);
+			printf("         ");
+		}
+
+		checaFim(&pm,&ghost, &gameOver, &qtd_comeu, &score);
+		tFim = clock();
+
+		if((tFim - tInicio)/(CLOCKS_PER_SEC/1000) >= tempoComer){
+			ghost.kill = 0;
+			ghost.charact = 'w';
+			qtd_comeu = 1;
+		} 
+		pontuacao(pm.oldX, pm.oldY, &score, mapa);
+		   
 		printPac(pm.posX, pm.posY, pm.oldX, pm.oldY, pm.charact, mapa);
 		printPac(ghost.posX, ghost.posY, ghost.oldX, ghost.oldY, ghost.charact, mapa);
-
-		if(pm.posX==ghost.posX && pm.posY==ghost.posY){
-        	gameOver=1;
-		}
-
 		delay(200);
 	}
 	return 0;
@@ -209,7 +215,7 @@ void animacao(){
 	}
 }
 void inf(){
-	gotoxy(60,5);
+	gotoxy(83,15);
 	printf("Controles do jogo!");
 	gotoxy(60,6);
 	printf("W -> Cima");
@@ -224,11 +230,11 @@ void inf(){
 	gotoxy(60,11);
 	printf("%c Para ganhar coma todos os pontos no menor tempo possivel", 175);
 	gotoxy(60,12);
-	printf("%cNao deixe os fantasmas te pegarem",175);
+	printf("%c Nao deixe os fantasmas te pegarem",175);
 	gotoxy(60,13);
 	printf("%c Voce so tem 3 vidas",175);
 	gotoxy(60,14);
-	printf("%cCerejas dao ponos extras (100pts)",175);
+	printf("%c Cerejas dao ponos extras (100pts)",175);
 	gotoxy(83,15);
 	printf("BOMMMM JOOOGO!");
 
@@ -264,6 +270,11 @@ void printMapa(int mapa[][30],int i, int j){
 			//printa pontos
 			gotoxy(60+j,i);
 			printf("*");
+			break;
+		}
+		case 2:{
+			gotoxy(60+j,i);
+			printf("O");
 			break;
 		}
 		case 4:{
@@ -314,7 +325,7 @@ void printPac(int Nx, int Ny, int Ox, int Oy, char charc, int mapa[][30]){
 	}
 }
 void auxPrintPac(int Ox, int Oy, int mapa[][30], char perso){
-	if(perso == 'w'){	
+	if(perso == 'w'|| perso == 'm'){	
 		printMapa(mapa, Oy, (Ox-60));	
 		gotoxy(0,0);		
 	} else{
@@ -323,25 +334,39 @@ void auxPrintPac(int Ox, int Oy, int mapa[][30], char perso){
 		gotoxy(0,0);
 	}
 }
-int verMovX(char* tecla, char* keepMove, int x,int y,int mapa[][30]){
-	switch(*tecla){
+void movPac(Pacman* pm, char* tecla, char* keepMove, int mapa[][30]){
+
+	if((*pm).oldX != (*pm).posX ){
+		(*pm).oldX = (*pm).posX;
+	}
+	if((*pm).oldY != (*pm).posY)    {
+		(*pm).oldY = (*pm).posY;
+	}
+
+	(*pm).posX = verMovX(&tecla, &keepMove, (*pm).oldX, (*pm).oldY, mapa);
+	(*pm).posY = verMovY(&tecla, &keepMove, (*pm).oldY, (*pm).oldX, mapa);
+
+	teleport(&pm);
+}
+int verMovX(char** tecla, char** keepMove, int x,int y,int mapa[][30]){
+	switch(**tecla){
 		case 'a':{
-			if(mapa[y][x-61] == 1 || mapa[y][x-61] == 0){
+			if(mapa[y][x-61] <=3){
 				x--;
-				*keepMove = *tecla;
+				**keepMove = **tecla;
 				return x;
 			} else{
-				*tecla = *keepMove;
+				**tecla = **keepMove;
 				return x;}
 			break;
 		}
 		case 'd':{
-			if(mapa[y][x-59] == 1 || mapa[y][x-59] == 0){
+			if(mapa[y][x-59] <=3){
 				x++;
-				*keepMove = *tecla;				
+				**keepMove = **tecla;				
 				return x;
 			} else {
-				*tecla = *keepMove;
+				**tecla = **keepMove;
 				return x;}
 			break;
 		}
@@ -351,26 +376,26 @@ int verMovX(char* tecla, char* keepMove, int x,int y,int mapa[][30]){
 		}
 	}
 }
-int verMovY(char* tecla, char* keepMove, int y, int x,int mapa[][30]){
-	
-	switch(*tecla){
+int verMovY(char** tecla, char** keepMove, int y, int x,int mapa[][30]){
+	//pointeiro do pointeiro hehe
+	switch(**tecla){
 		case 'w':{
-			if(mapa[y-1][x-60] == 1 || mapa[y-1][x-60] == 0){
+			if(mapa[y-1][x-60] <=3){
 				y--;
-				*keepMove = *tecla;
+				**keepMove = **tecla;
 				return y;
 			}else{
-				*tecla = *keepMove;
+				**tecla = **keepMove;
 				return y;}
 			break;
 		}
 		case 's':{
-			if(mapa[y+1][x-60] == 1 || mapa[y+1][x-60] == 0){
+			if(mapa[y+1][x-60]<=3){
 				y++;
-				*keepMove = *tecla;				
+				**keepMove = **tecla;				
 				return y;
 			}else{
-				*tecla = *keepMove;
+				**tecla = **keepMove;
 				return y;}
 			break;
 		}
@@ -385,6 +410,8 @@ void screenPoint(){
 	printf(" _________");
 	gotoxy(35,4);
 	printf("|  SCORE  | ");
+	gotoxy(35,5);
+	printf("|");
 	gotoxy(45,5);
 	printf("|");
 	gotoxy(35,6);
@@ -392,12 +419,20 @@ void screenPoint(){
 	gotoxy(0,0);
 }
 void pontuacao(int Ox, int Oy, int *score, int mapa[][30]){
-	if(mapa[Oy][Ox-60]==1){
-		(*score)++;
-		mapa[Oy][Ox-60] = 0;
+	switch(mapa[Oy][Ox-60]){
+		case 1:{
+			(*score)++;
+			mapa[Oy][Ox-60] = 0;
+			break;
+		}
+		case 2:{
+			(*score)+=10;
+			mapa[Oy][Ox-60] = 0;
+			break;
+		}
 	}
-	gotoxy(35,5);
-	printf("|   ""%d",(*score));
+	gotoxy(37,5);
+	printf("%d",(*score));
 }
 int calculadist(int PMx, int PMy, int GHx, int GHy){
 	return sqrt(pow(GHx-PMx,2) + pow(GHy-PMy,2));
@@ -406,45 +441,152 @@ void movGhost(Ghost* ghost, Pacman* pacman, int mapa[][30]){
 	int dist_menor;
   	int GHx_menor;
   	int GHy_menor;
-  	dist_menor = calculadist((*ghost).posX,(*ghost).posY,(*pacman).posX,(*pacman).posY);
-  	GHx_menor = (*ghost).posX ;
-  	GHy_menor = (*ghost).posY;
-  	
-  	if((mapa[(*ghost).posY][(*ghost).posX  - 61] == 1 || mapa[(*ghost).posY][((*ghost).posX - 61)] == 0) && (calculadist(((*ghost).posX-1),(*ghost).posY,(*pacman).posX,(*pacman).posY) < dist_menor))
-  	{
-      GHx_menor = ((*ghost).posX - 1);
-      GHy_menor = (*ghost).posY;
+
+	if((*ghost).oldX != (*ghost).posX){
+		(*ghost).oldX = (*ghost).posX;
+	}
+	if((*ghost).oldY != (*ghost).posY){
+		(*ghost).oldY = (*ghost).posY;
+	}
+ 
+  	if((*ghost).kill == 0){
+		if(rand()%100 < 80){
+			perseguePac(&ghost, &pacman, mapa);
+		} 
+	} else{
+		if(rand()%100 < 80){
+			fogePac(&ghost, &pacman, mapa);
+		} 
+	}
+
+	teleportGhost(&ghost);
+}
+void teleport(Pacman **pm){
+	if((**pm).posX == 60){
+		(**pm).posX = 89; 
+	} else if((**pm).posX == 89){
+		(**pm).posX = 60;
 	}	
-    else if((mapa[(*ghost).posY][((*ghost).posX-59)] == 1 || mapa[(*ghost).posY][((*ghost).posX - 59)] == 0) && (calculadist(((*ghost).posX +1),(*ghost).posY,(*pacman).posX,(*pacman).posY) < dist_menor))
-  	{
-      GHx_menor = ((*ghost).posX) + 1;
-      GHy_menor = (*ghost).posY;
-  	}
-  	else if((mapa[(*ghost).posY-1][((*ghost).posX - 60)] == 1 || mapa[(*ghost).posY-1][((*ghost).posX-60)] == 0) && (calculadist((*ghost).posX ,((*ghost).posY-1),(*pacman).posX,(*pacman).posY) < dist_menor))
-  	{
-      GHx_menor = (*ghost).posX ;
-      GHy_menor = ((*ghost).posY - 1);
-  	}
-  	else if((mapa[(*ghost).posY + 1][((*ghost).posX-60)] == 1 || mapa[(*ghost).posY + 1][((*ghost).posX-60)] == 0) && (calculadist((*ghost).posX ,((*ghost).posY+1),(*pacman).posX,(*pacman).posY) < dist_menor))
-  	{
-      GHx_menor = (*ghost).posX ;
-      GHy_menor = ((*ghost).posY + 1);
-  	}
-  	
-    if((*ghost).posX  == GHx_menor && ((*ghost).posY == GHy_menor))
-    {
-        if( pow( ((*ghost).posX -1) - (*pacman).posX ,2) < pow( ((*ghost).posX - (*pacman).posX) ,2)  && (mapa[(*ghost).posY][(*ghost).posX -61] == 1 || mapa[(*ghost).posY][(*ghost).posX -61] == 0))
-            GHx_menor = (*ghost).posX -1;
-        else if( pow( ((*ghost).posX +1) - (*pacman).posX, 2) < pow( ((*ghost).posX - (*pacman).posX), 2) && (mapa[(*ghost).posY][(*ghost).posX -59] == 1 || mapa[(*ghost).posY][(*ghost).posX -59] == 0))
-            GHx_menor = (*ghost).posX +1;
+}
+void teleportGhost(Ghost** ghost){
+	if((**ghost).posX == 89){
+			(**ghost).posX = 60;
+	} else if((**ghost).posX == 60){
+		(**ghost).posX =89;
+	}
+}
+void checaFim(Pacman* pm, Ghost* ghost, int* gameOver, int* qtd_comeu, int* score){
 
-        if( pow( ((*ghost).posY-1) - (*pacman).posY ,2) < pow( ((*ghost).posY - (*pacman).posY) ,2) && (mapa[(*ghost).posY-1][(*ghost).posX-60] == 1 || mapa[(*ghost).posY-1][(*ghost).posX -60] == 0))
-            GHy_menor = (*ghost).posY-1;
-        else if( pow( ((*ghost).posY+1) - (*pacman).posY, 2) < pow( ((*ghost).posY - (*pacman).posY), 2) && (mapa[(*ghost).posY+1][(*ghost).posX-60] == 1 || mapa[(*ghost).posY+1][(*ghost).posX-60] == 0))
-            GHy_menor = (*ghost).posY+1;
-    } 
+	if((*pm).posX == (*ghost).posX && (*pm).posY == (*ghost).posY){
+		switch((*ghost).kill){
+			case 0:{
+				*gameOver = 1;
+				break;
+			}
+			case 1:{
+				//respawn no ghost
+				(*ghost).posX = 74;
+				(*ghost).posY = 13;
+				(*ghost).kill = 0;
+				(*ghost).charact = 'w';
+				//showScreen
+				gotoxy(0,10);
+				printf("%d", 100*(*qtd_comeu));
+				delay(200);
+				printf("   ");
+				
+				//logica
+				(*score) +=100*(*qtd_comeu);
+				(*qtd_comeu)++;
+				break;
+			}
+		}
+	}	
+}
+void perseguePac(Ghost** ghost, Pacman** pacman, int mapa[][30]){
+	int GHx_menor = (**ghost).posX;
+	int GHy_menor = (**ghost).posY;
+	int dist_menor;
 
-    (*ghost).posX  = GHx_menor;
-    (*ghost).posY = GHy_menor;
+	dist_menor = calculadist((**ghost).posX,(**ghost).posY,(**pacman).posX,(**pacman).posY);
+
+	if((mapa[(**ghost).posY][(**ghost).posX  - 61] <=3) && (calculadist(((**ghost).posX-1),(**ghost).posY,(**pacman).posX,(**pacman).posY) < dist_menor)){
+		GHx_menor = ((**ghost).posX - 1);
+		GHy_menor = (**ghost).posY;
+		}	
+		else if((mapa[(**ghost).posY][((**ghost).posX-59)] <= 3 ) && (calculadist(((**ghost).posX +1),(**ghost).posY,(**pacman).posX,(**pacman).posY) < dist_menor))
+		{
+		GHx_menor = ((**ghost).posX) + 1;
+		GHy_menor = (**ghost).posY;
+		}
+		else if((mapa[(**ghost).posY-1][((**ghost).posX - 60)] <=3 ) && (calculadist((**ghost).posX ,((**ghost).posY-1),(**pacman).posX,(**pacman).posY) < dist_menor))
+		{
+		GHx_menor = (**ghost).posX ;
+		GHy_menor = ((**ghost).posY - 1);
+		}
+		else if((mapa[(**ghost).posY + 1][((**ghost).posX-60)] <=3) && (calculadist((**ghost).posX ,((**ghost).posY+1),(**pacman).posX,(**pacman).posY) < dist_menor))
+		{
+		GHx_menor = (**ghost).posX ;
+		GHy_menor = ((**ghost).posY + 1);
+		}
 	
+
+	if((**ghost).posX  == GHx_menor && ((**ghost).posY == GHy_menor)){
+		if( pow( ((**ghost).posX -1) - (**pacman).posX ,2) < pow( ((**ghost).posX - (**pacman).posX) ,2)  && (mapa[(**ghost).posY][(**ghost).posX -61] <=3))
+			GHx_menor = (**ghost).posX -1;
+		else if( pow( ((**ghost).posX +1) - (**pacman).posX, 2) < pow( ((**ghost).posX - (**pacman).posX), 2) && (mapa[(**ghost).posY][(**ghost).posX -59] <=3))
+			GHx_menor = (**ghost).posX +1;
+
+		if( pow( ((**ghost).posY-1) - (**pacman).posY ,2) < pow( ((**ghost).posY - (**pacman).posY) , 2) && (mapa[(**ghost).posY-1][(**ghost).posX-60] <=3))
+			GHy_menor = (**ghost).posY-1;
+		else if( pow( ((**ghost).posY+1) - (**pacman).posY, 2) < pow( ((**ghost).posY - (**pacman).posY), 2) && (mapa[(**ghost).posY+1][(**ghost).posX-60] <=3))
+			GHy_menor = (**ghost).posY+1;
+	}
+
+	(**ghost).posX  = GHx_menor;
+	(**ghost).posY  = GHy_menor;
+
+}
+void fogePac(Ghost** ghost, Pacman** pacman, int mapa[][30]){
+	int GHx_menor = (**ghost).posX;
+	int GHy_menor = (**ghost).posY;
+	int dist_menor;
+
+	dist_menor = calculadist((**ghost).posX,(**ghost).posY,(**pacman).posX,(**pacman).posY);
+
+	if((mapa[(**ghost).posY][(**ghost).posX  - 61] <=3) && (calculadist(((**ghost).posX-1),(**ghost).posY,(**pacman).posX,(**pacman).posY) > dist_menor)){
+		GHx_menor = ((**ghost).posX - 1);
+		GHy_menor = (**ghost).posY;
+		}	
+		else if((mapa[(**ghost).posY][((**ghost).posX-59)] <= 3 ) && (calculadist(((**ghost).posX +1),(**ghost).posY,(**pacman).posX,(**pacman).posY) > dist_menor))
+		{
+		GHx_menor = ((**ghost).posX) + 1;
+		GHy_menor = (**ghost).posY;
+		}
+		else if((mapa[(**ghost).posY-1][((**ghost).posX - 60)] <=3 ) && (calculadist((**ghost).posX ,((**ghost).posY-1),(**pacman).posX,(**pacman).posY) > dist_menor))
+		{
+		GHx_menor = (**ghost).posX ;
+		GHy_menor = ((**ghost).posY - 1);
+		}
+		else if((mapa[(**ghost).posY + 1][((**ghost).posX-60)] <=3) && (calculadist((**ghost).posX ,((**ghost).posY+1),(**pacman).posX,(**pacman).posY) > dist_menor))
+		{
+		GHx_menor = (**ghost).posX ;
+		GHy_menor = ((**ghost).posY + 1);
+		}
+	
+
+	if((**ghost).posX  == GHx_menor && ((**ghost).posY == GHy_menor)){
+		if( pow( ((**ghost).posX -1) - (**pacman).posX ,2) > pow( ((**ghost).posX - (**pacman).posX) ,2)  && (mapa[(**ghost).posY][(**ghost).posX -61] <=3))
+			GHx_menor = (**ghost).posX -1;
+		else if( pow( ((**ghost).posX +1) - (**pacman).posX, 2) > pow( ((**ghost).posX - (**pacman).posX), 2) && (mapa[(**ghost).posY][(**ghost).posX -59] <=3))
+			GHx_menor = (**ghost).posX +1;
+
+		if( pow( ((**ghost).posY-1) - (**pacman).posY ,2) > pow( ((**ghost).posY - (**pacman).posY) , 2) && (mapa[(**ghost).posY-1][(**ghost).posX-60] <=3))
+			GHy_menor = (**ghost).posY-1;
+		else if( pow( ((**ghost).posY+1) - (**pacman).posY, 2) > pow( ((**ghost).posY - (**pacman).posY), 2) && (mapa[(**ghost).posY+1][(**ghost).posX-60] <=3))
+			GHy_menor = (**ghost).posY+1;
+	}
+
+	(**ghost).posX  = GHx_menor;
+	(**ghost).posY  = GHy_menor;
 }
