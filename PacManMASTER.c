@@ -4,9 +4,9 @@
 #include <time.h> 		//contem time(), que retorna o tempo atual em ms
 #include <windows.h>	//contem funcoes necessarias para a funcao gotoxy;
 #include <math.h>
+#include "records.h"
 
-
-#define WIDTH 60
+#define WIDTH 50
 
 //define da Cores
 #define RESET "\x1B[0m"
@@ -43,10 +43,10 @@ int difTimer(int tInicio, int tFim);
 //funcoes iniciais 
 void inicio();	
 void showLetreiro();
-void animacao();
+void menuAnimacao();
 void inf();		
 void screenPoint();
-char screenFinal(int* score);
+char screenFinal(int* score, int newHigh);
 
 void start(Pacman* pm, Ghost* ghost, Ghost* ghost2, Ghost* ghost3, Ghost* ghost4, int mapa[][30], int mapaO[][30]);
 void copiaMapa(int mapaO[][30], int mapa[][30]);
@@ -111,10 +111,10 @@ int main(int argc, char** argv){
 						{8,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,8},//28					
 						{6,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,7}};//29
 						
-	int gameOver=0;
+	int gameOver=0, record[10];
 	int score = 0; 
 	int velocidade = 150;
-	char tecla = 's', keepMove, f = 'n';
+	char tecla = 's', keepMove, f = 'n', newHigh;
 	int tInicio, tFim, tempoComer = 10, qtd_comeu = 1, especial = 0;
 
 	Pacman pm;
@@ -132,8 +132,9 @@ int main(int argc, char** argv){
 			inicio();
 			inf();
 			delay(5000);
+			score = 0;
 		}
-		
+		setHighScore(record);
 		start(&pm, &ghost, &ghost2, &ghost3, &ghost4, mapa, mapaO);
 
 		while(pm.Life > 0){
@@ -144,6 +145,7 @@ int main(int argc, char** argv){
 				pause(tecla);
 				setVelocity(tecla, &velocidade);
 			}
+
 			
 			//verificar quem tem precedencias
 			if(!especial){
@@ -228,9 +230,10 @@ int main(int argc, char** argv){
 			delay(velocidade);
 		}
 
+		newHigh = getNewHighScore(score, record);
 		system("cls"); 
 		velocidade = 150;
-		f = screenFinal(&score);
+		f = screenFinal(&score, newHigh);
 
 		if(f =='s'){
 			score = 0;
@@ -256,7 +259,7 @@ void timer(int tInicio, int tFim){
 
 	int i = 10 - difTimer(tInicio, tFim);
 	//posicao onde esta a caixa do tempo
-	gotoxy(38,11);
+	gotoxy(WIDTH - 22,11);
 	i != 0? printf(" %d ", 10 - difTimer(tInicio, tFim)):printf("   ");
 	gotoxy(0,0);
 }
@@ -283,7 +286,7 @@ void setVelocity(char tecla, int* velocidade){
 }
 void inicio(){
 	showLetreiro();
-	animacao();
+	menuAnimacao();
 	system("cls");
 }
 void showLetreiro(){
@@ -310,26 +313,35 @@ void showLetreiro(){
     gotoxy(WIDTH,10);
     printf("|__|    |_| |_| \\ _____ /   |_| |_| |_| |_| |_|   |_|        \n");
 }
-void animacao(){
+void menuAnimacao(){
 	char mStart;
+	int highScores[10];
 	int i;
-	gotoxy(74,11);
+	gotoxy(WIDTH + 14,11);
 	printf("Pressione SPACE para JOGAR");
-	gotoxy(76,20);
+	gotoxy(WIDTH +16,20);
 	printf("Pressione ESC para SAIR");
 
 	//cria a caixa de animacao
 	for(i=0;i<31;i++){
 		if(i==0){
-			gotoxy(71,13);
+			gotoxy(WIDTH + 11,13);
 			printf("|");
-			gotoxy(101,13);
+			gotoxy(WIDTH + 41,13);
 			printf("|");
 		}
-		gotoxy(71+i,12);
+		gotoxy(WIDTH + 11 +i,12);
 		printf("-");
-		gotoxy(71+i,14);
+		gotoxy(WIDTH + 11 +i,14);
 		printf("-");
+	}
+
+	setHighScore(highScores);
+	gotoxy(WIDTH-20, 4);
+	printf("HIGH SCORE");
+	for(int i = 0; i<10;i++){
+		gotoxy(WIDTH-20, 5+i);
+		printf("%d - %d\n",i+1,highScores[i]);
 	}
 
 	while(mStart != 32){
@@ -339,11 +351,11 @@ void animacao(){
 			break;
 		 	}								
 			//faz a animacao
-			gotoxy(75+i,13);
+			gotoxy(WIDTH + 15+i,13);
 			printf("C");
 			gotoxy(0,0);
 			delay(60);
-			gotoxy(75+i,13);
+			gotoxy(WIDTH + 15+i,13);
 			printf(" ");
 			gotoxy(0,0);
 			delay(100);
@@ -356,7 +368,7 @@ void animacao(){
 	}
 }
 void inf(){
-	gotoxy(83,5);
+	gotoxy(WIDTH  + 13,5);
 	printf("Controles do jogo!");
 	gotoxy(WIDTH,6);
 	printf("W -> Cima");
@@ -376,7 +388,7 @@ void inf(){
 	printf("%c Cerejas dao pontos extras (50pts)",175);
 	gotoxy(WIDTH,14);
 	printf("%c NAO SEJA PEGO!!",175);
-	gotoxy(83,15);
+	gotoxy(WIDTH + 13,15);
 	printf("BOMMMM JOOOGO!");
 	gotoxy(0,0);
 }
@@ -387,12 +399,11 @@ void start(Pacman* pm, Ghost* ghost,Ghost* ghost2, Ghost* ghost3, Ghost* ghost4,
 	delay(1000);
 	mapaDraw(mapa);
 	screenPoint();
-
 	
 	//configurando o pacman
 	(*pm).Life = 3;
 	(*pm).charact = 'c';
-	(*pm).posX = 74; 						//distancia da parede (largura)
+	(*pm).posX = WIDTH + 14; 						//distancia da parede (largura)
 	(*pm).posY	= 23; 						//altura
 	gotoxy((*pm).posX,(*pm).posY);		// coloca o pacman na posicao inicial
 
@@ -400,7 +411,7 @@ void start(Pacman* pm, Ghost* ghost,Ghost* ghost2, Ghost* ghost3, Ghost* ghost4,
 	//ghost
 	(*ghost).charact = 'w';
 	(*ghost).kill = 0;
-	(*ghost).posX = 74;
+	(*ghost).posX = WIDTH + 14;
     (*ghost).posY = 13;
 	(*ghost).mov  = 'w';
     gotoxy((*ghost).posX, (*ghost).posY);
@@ -409,7 +420,7 @@ void start(Pacman* pm, Ghost* ghost,Ghost* ghost2, Ghost* ghost3, Ghost* ghost4,
 	//ghost2
 	(*ghost2).charact = 'w';
 	(*ghost2).kill = 0;
-	(*ghost2).posX = 74;
+	(*ghost2).posX = WIDTH + 14;
     (*ghost2).posY = 12;
 	(*ghost2).mov  = 'd';
     gotoxy((*ghost2).posX, (*ghost2).posY);
@@ -418,7 +429,7 @@ void start(Pacman* pm, Ghost* ghost,Ghost* ghost2, Ghost* ghost3, Ghost* ghost4,
 	//ghost3
 	(*ghost3).charact = 'w';
 	(*ghost3).kill = 0;
-	(*ghost3).posX = 74;
+	(*ghost3).posX = WIDTH + 14;
     (*ghost3).posY = 11;
 	(*ghost3).mov  = 'w';
     gotoxy((*ghost3).posX, (*ghost3).posY);
@@ -427,33 +438,38 @@ void start(Pacman* pm, Ghost* ghost,Ghost* ghost2, Ghost* ghost3, Ghost* ghost4,
 	//ghost4
 	(*ghost4).charact = 'w';
 	(*ghost4).kill = 0;
-	(*ghost4).posX = 74;
+	(*ghost4).posX = WIDTH + 14;
     (*ghost4).posY = 10;
 	(*ghost4).mov  = 'a';
     gotoxy((*ghost4).posX, (*ghost4).posY);
     gotoxy(0,0);
 }
-char screenFinal(int* score){
+char screenFinal(int* score, int newHigh){
 	char f;
-	gotoxy(70,10);
+	if(newHigh!=0){
+		gotoxy(WIDTH +6, 8);
+		printf("!!!!Voce alcancou a %da posicao!!!!", newHigh);
+	}
+
+	gotoxy(WIDTH + 10,10);
 	//printa parte superior
 	printf("%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c",201,205,205,205,205,205,205,205,205,205,205,205,205,205,205,205,205,205,205,205,205,187);
-	gotoxy(70,11);
+	gotoxy(WIDTH+10,11);
 	printf("%c!!!!!!!SCORE!!!!!!!!%c",186,186);
-	gotoxy(70,12);
+	gotoxy(WIDTH+10,12);
 	printf("%c                    %c",186,186);
-	gotoxy(70,13);
+	gotoxy(WIDTH+10,13);
 	printf("%c                    %c",186,186);
-	gotoxy(70,14);
+	gotoxy(WIDTH+10,14);
 	printf("%c  JOGAR NOVAMENTE?  %c",186,186);
-	gotoxy(70,15);
+	gotoxy(WIDTH+10,15);
 	printf("%c       (s/n)        %c",186,186);
-	gotoxy(70,16);
+	gotoxy(WIDTH+10,16);
 	printf("%c                    %c",186,186);
-	gotoxy(70,17);
+	gotoxy(WIDTH+10,17);
 	printf("%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c",200,205,205,205,205,205,205,205,205,205,205,205,205,205,205,205,205,205,205,205,205,188);
 
-	gotoxy(79,12);
+	gotoxy(WIDTH +19,12);
 	printf("%d", *score);
 	gotoxy(0,0); 
 
@@ -667,16 +683,16 @@ void screenPoint(){
   
   for(i=0;i<3-j;i++){
 	   if(i==0){
-         x=35;
+         x=WIDTH -25;
          y=3;
 	    }
 	   else if(i==1){
-	   	 x=104;
+	   	 x=WIDTH +44;
 	   	 y=3;
 	    }
 	   else if(i==2){
 	   	 if(j==0){
-	   	 x=35;
+	   	 x=WIDTH -25;
 	   	 y=9;
 		   }
 	    }
@@ -722,10 +738,10 @@ void pontuacao(int *score, int mapa[][30], Pacman* pm){
 		}
 	}
 	//vai na posição onde printa o score dentro da tabela desenhada pela screenPoint
-	gotoxy(37,5);
+	gotoxy(WIDTH - 23,5);
 	printf("  %d",(*score));
 	//tirar daqui
-	gotoxy(106,5);
+	gotoxy(WIDTH +46,5);
 	printf("  %d",(*pm).Life);
 	gotoxy(0,0);
 }
@@ -769,7 +785,7 @@ void movGhost2(Ghost* ghost, Pacman* pacman, int mapa[][30]){
 		if(rand()%100 < 80){
 			perseguePac(&ghost, &pacman, mapa);
 		}
-	} else {
+		} else {
 		if(rand()%100 < 80){
 			fogePac(&ghost, &pacman, mapa);
 			} 
@@ -797,24 +813,32 @@ void checaEstado(Pacman* pm, Ghost* ghost, int* qtd_comeu, int* score){
 	if((*pm).posX == (*ghost).posX && (*pm).posY == (*ghost).posY){
 		switch((*ghost).kill){
 			case 0:{
+				//RESPAWN NO PAC
 				(*pm).Life --;
-				(*pm).posX=74;
+				(*pm).posX=WIDTH + 14;
 				(*pm).posY=23;
 				delay(1000);
+
+				//respawn no ghost
+				(*ghost).posX =WIDTH + 14;
+				(*ghost).posY = 13;
+				(*ghost).kill = 0;
+				(*ghost).charact = 'w';
 				break;
 			}
 			case 1:{
 				//respawn no ghost
-				(*ghost).posX = 74;
+				(*ghost).posX =WIDTH + 14;
 				(*ghost).posY = 13;
 				(*ghost).kill = 0;
 				(*ghost).charact = 'w';
 
 				//showScreen
-				gotoxy(75,33);
+				gotoxy(WIDTH + 15,33);
 				printf("+%d", 100*(*qtd_comeu));
-				delay(250);
-				gotoxy(75,33);
+				//BREVE PAUSA
+				delay(300);
+				gotoxy(WIDTH + 15,33);
 				printf("              ");
 				
 				//logica
@@ -835,7 +859,7 @@ void perseguePac(Ghost** ghost, Pacman** pacman, int mapa[][30]){
 	if((mapa[(**ghost).posY][(**ghost).posX - (1+WIDTH)] < 3) && (calculadist(((**ghost).posX-1),(**ghost).posY,(**pacman).posX,(**pacman).posY) < dist_menor)){
 		GHx_menor = ((**ghost).posX - 1);
 		GHy_menor = (**ghost).posY;
-		}	
+		}
 		else if((mapa[(**ghost).posY][((**ghost).posX + (1-WIDTH))] < 3 ) && (calculadist(((**ghost).posX +1),(**ghost).posY,(**pacman).posX,(**pacman).posY) < dist_menor))
 		{
 		GHx_menor = ((**ghost).posX) + 1;
