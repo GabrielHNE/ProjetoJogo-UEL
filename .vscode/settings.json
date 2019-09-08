@@ -1,5 +1,7 @@
 {
     "files.associations": {
         "math.h": "c"
-    }
+    },
+    "files.autoSave": "afterDelay",
+    "terminal.explorerKind": "external"
 }
